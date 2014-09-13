@@ -8,7 +8,7 @@
 Summary:        Replacement for the standard PHP serializer
 Name:           %{basepkg}-pecl-igbinary
 Version:        1.2.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        BSD
 Group:          System Environment/Libraries
 
@@ -25,7 +25,7 @@ Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
 Provides:       php-pecl(%{extname}) = %{version}
 Provides:       php-pecl-igbinary = %{version}
-Provides:       php-pecl-igbinary = %{version}
+Provides:       php-pecl-igbinary%{?_isa} = %{version}
 
 %if 0%{?fedora} < 20 && 0%{?rhel} < 7
 # Filter private shared
@@ -45,8 +45,10 @@ based storages for serialized data.
 %package devel
 Summary:       Igbinary developer files (header)
 Group:         Development/Libraries
-Requires:      php-pecl-%{extname}%{?_isa} = %{version}-%{release}
+Requires:      %{basepkg}-pecl-%{extname}%{?_isa} = %{version}-%{release}
 Requires:      php-devel
+Provides:      php-pecl-igbinary-devel = %{version}
+Provides:      php-pecl-igbinary-devel%{?_isa} = %{version}
 
 %description devel
 These are the files needed to compile programs using Igbinary
@@ -187,6 +189,9 @@ fi
 
 
 %changelog
+* Sat Sep 13 2014 Andy Thompson <andy@webtatic.com> - 1.2.1-2
+- Add provides for original packages, require basepkg
+
 * Sat Sep 13 2014 Andy Thompson <andy@webtatic.com> - 1.2.1-1
 - Import EPEL php-pecl-igbinary-1.1.1-3 RPM
 - Remove obsolete withapc
