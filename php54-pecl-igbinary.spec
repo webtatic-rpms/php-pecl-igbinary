@@ -2,6 +2,8 @@
 
 %global    basepkg   php54w
 %global    extname   igbinary
+%global    with_zts  0%{?__ztsphp:1}
+
 
 Summary:        Replacement for the standard PHP serializer
 Name:           %{basepkg}-pecl-igbinary
@@ -68,12 +70,25 @@ extension=%{extname}.so
 ;apc.serializer=igbinary
 EOF
 
+%if %{with_zts}
+cp -r %{extname}-%{version} %{extname}-%{version}-zts
+%endif
+
 %build
-cd %{extname}-%{version}
+
+pushd %{extname}-%{version}
 %{_bindir}/phpize
 %configure --with-php-config=%{_bindir}/php-config
 make %{?_smp_mflags}
+popd
 
+%if %{with_zts}
+pushd %{extname}-%{version}-zts
+%{_bindir}/zts-phpize
+%configure --with-php-config=%{_bindir}/zts-php-config
+make %{?_smp_mflags}
+popd
+%endif
 
 %install
 rm -rf %{buildroot}
@@ -86,10 +101,17 @@ install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 %{__mkdir_p} %{buildroot}%{php_inidir}
 install -D -m 644 %{extname}.ini %{buildroot}%{php_inidir}/%{extname}.ini
 
+%if %{with_zts}
+make install -C %{extname}-%{version}-zts \
+     INSTALL_ROOT=%{buildroot}
+
+%{__mkdir_p} %{buildroot}%{php_ztsinidir}
+install -D -m 644 %{extname}.ini %{buildroot}%{php_ztsinidir}/%{extname}.ini
+%endif
 
 %check
-cd %{extname}-%{version}
 
+pushd %{extname}-%{version}
 # simple module load test
 # without APC to ensure than can run without
 %{__php} --no-php-ini \
@@ -97,12 +119,35 @@ cd %{extname}-%{version}
     --define extension=%{extname}.so \
     --modules | grep %{extname}
 
-# APC required for test 045
-ln -s %{php_extdir}/apc.so modules/
+# APCu required for test 045
+ln -s %{php_extdir}/apcu.so modules/
 
-NO_INTERACTION=1 make test | tee rpmtests.log
-grep -q "FAILED TEST" rpmtests.log && exit 1
+TEST_PHP_EXECUTABLE=%{__php} \
+TEST_PHP_ARGS="-n -d extension=apcu.so -d extension=$PWD/modules/%{extname}.so" \
+NO_INTERACTION=1 \
+REPORT_EXIT_STATUS=1 \
+%{_bindir}/php -n run-tests.php
+popd
 
+%if %{with_zts}
+pushd %{extname}-%{version}-zts
+# simple module load test
+# without APC to ensure than can run without
+%{__ztsphp} --no-php-ini \
+    --define extension_dir=modules \
+    --define extension=%{extname}.so \
+    --modules | grep %{extname}
+
+# APCu required for test 045
+ln -s %{php_ztsextdir}/apcu.so modules/
+
+TEST_PHP_EXECUTABLE=%{__ztsphp} \
+TEST_PHP_ARGS="-n -d extension=apcu.so -d extension=$PWD/modules/%{extname}.so" \
+NO_INTERACTION=1 \
+REPORT_EXIT_STATUS=1 \
+%{_bindir}/php -n run-tests.php
+popd
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -127,11 +172,18 @@ fi
 %config(noreplace) %{php_inidir}/%{extname}.ini
 %{php_extdir}/%{extname}.so
 %{pecl_xmldir}/%{name}.xml
+%if %{with_zts}
+%config(noreplace) %{php_ztsinidir}/%{extname}.ini
+%{php_ztsextdir}/%{extname}.so
+%endif
 
 
 %files devel
 %defattr(-,root,root,-)
 %{php_incldir}/ext/%{extname}
+%if %{with_zts}
+%{php_ztsincldir}/ext/%{extname}
+%endif
 
 
 %changelog
@@ -139,3 +191,4 @@ fi
 - Import EPEL php-pecl-igbinary-1.1.1-3 RPM
 - Remove obsolete withapc
 - update to 1.2.1
+- Add ZTS extension compilation
