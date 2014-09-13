@@ -1,49 +1,35 @@
 %{!?__pecl: %{expand: %%global __pecl %{_bindir}/pecl}}
-%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 
+%global    basepkg   php54w
 %global    extname   igbinary
 
-%if 0%{?fedora} >= 14
-%global withapc 1
-%else
-# EL-6 only provides 3.1.3pl1
-%global withapc 0
-%endif
-
 Summary:        Replacement for the standard PHP serializer
-Name:           php-pecl-igbinary
-Version:        1.1.1
-Release:        3%{?dist}
+Name:           %{basepkg}-pecl-igbinary
+Version:        1.2.1
+Release:        1%{?dist}
 License:        BSD
 Group:          System Environment/Libraries
 
 URL:            http://pecl.php.net/package/igbinary
 Source0:        http://pecl.php.net/get/%{extname}-%{version}.tgz
-# http://pecl.php.net/bugs/22598
-# https://github.com/igbinary/igbinary/tree/1.1.1/tests
-Source1:        %{extname}-tests.tgz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
-BuildRequires:  php-devel >= 5.2.0
-%if %{withapc}
-BuildRequires:  php-pecl-apc-devel >= 3.1.7
-%else
-BuildRequires:  php-pear
-%endif
+BuildRequires:  %{basepkg}-devel >= 5.2.0
+BuildRequires:  %{basepkg}-pecl-apcu-devel >= 3.1.7
 
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
 Provides:       php-pecl(%{extname}) = %{version}
+Provides:       php-pecl-igbinary = %{version}
+Provides:       php-pecl-igbinary = %{version}
 
-
-# RPM 4.8
-%{?filter_provides_in: %filter_provides_in %{php_extdir}/.*\.so$}
+%if 0%{?fedora} < 20 && 0%{?rhel} < 7
+# Filter private shared
+%{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
 %{?filter_setup}
-# RPM 4.9
-%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{php_extdir}/.*\\.so$
-
+%endif
 
 %description
 Igbinary is a drop in replacement for the standard PHP serializer.
@@ -78,15 +64,9 @@ extension=%{extname}.so
 ; Use igbinary as session serializer
 ;session.serialize_handler=igbinary
 
-%if %{withapc}
 ; Use igbinary as APC serializer
 ;apc.serializer=igbinary
-%endif
 EOF
-
-cd %{extname}-%{version}
-tar xzf %{SOURCE1}
-
 
 %build
 cd %{extname}-%{version}
@@ -103,7 +83,8 @@ make install -C %{extname}-%{version} \
 
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
-install -D -m 644 %{extname}.ini %{buildroot}%{_sysconfdir}/php.d/%{extname}.ini
+%{__mkdir_p} %{buildroot}%{php_inidir}
+install -D -m 644 %{extname}.ini %{buildroot}%{php_inidir}/%{extname}.ini
 
 
 %check
@@ -111,15 +92,13 @@ cd %{extname}-%{version}
 
 # simple module load test
 # without APC to ensure than can run without
-%{_bindir}/php --no-php-ini \
+%{__php} --no-php-ini \
     --define extension_dir=modules \
     --define extension=%{extname}.so \
     --modules | grep %{extname}
 
-%if %{withapc}
 # APC required for test 045
 ln -s %{php_extdir}/apc.so modules/
-%endif
 
 NO_INTERACTION=1 make test | tee rpmtests.log
 grep -q "FAILED TEST" rpmtests.log && exit 1
@@ -144,38 +123,19 @@ fi
 %doc %{extname}-%{version}/COPYING
 %doc %{extname}-%{version}/CREDITS
 %doc %{extname}-%{version}/NEWS
-%doc %{extname}-%{version}/README
-%config(noreplace) %{_sysconfdir}/php.d/%{extname}.ini
+%doc %{extname}-%{version}/README.md
+%config(noreplace) %{php_inidir}/%{extname}.ini
 %{php_extdir}/%{extname}.so
 %{pecl_xmldir}/%{name}.xml
 
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/php/ext/%{extname}
+%{php_incldir}/ext/%{extname}
 
 
 %changelog
-* Sun Sep 18 2011 Remi Collet <rpms@famillecollet.com> 1.1.1-3
-- fix EPEL-6 build, no arch version for php-devel
-
-* Sat Sep 17 2011 Remi Collet <rpms@famillecollet.com> 1.1.1-2
-- clean spec, adapted filters
-
-* Mon Mar 14 2011 Remi Collet <rpms@famillecollet.com> 1.1.1-1
-- version 1.1.1 published on pecl.php.net
-- rename to php-pecl-igbinary
-
-* Mon Jan 17 2011 Remi Collet <rpms@famillecollet.com> 1.1.1-1
-- update to 1.1.1
-
-* Fri Dec 31 2010 Remi Collet <rpms@famillecollet.com> 1.0.2-3
-- updated tests from Git.
-
-* Sat Oct 23 2010 Remi Collet <rpms@famillecollet.com> 1.0.2-2
-- filter provides to avoid igbinary.so
-- add missing %%dist
-
-* Wed Sep 29 2010 Remi Collet <rpms@famillecollet.com> 1.0.2-1
-- initital RPM
-
+* Sat Sep 13 2014 Andy Thompson <andy@webtatic.com> - 1.2.1-1
+- Import EPEL php-pecl-igbinary-1.1.1-3 RPM
+- Remove obsolete withapc
+- update to 1.2.1
