@@ -1,6 +1,6 @@
 %{!?__pecl: %{expand: %%global __pecl %{_bindir}/pecl}}
 
-%global    basepkg   php54w
+%global    basepkg   %{?basepkg}%{!?basepkg:php}
 %global    extname   igbinary
 %global    with_zts  0%{?__ztsphp:1}
 
