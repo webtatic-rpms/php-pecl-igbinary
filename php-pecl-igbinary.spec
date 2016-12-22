@@ -125,7 +125,7 @@ pushd %{extname}-%{version}
 ln -s %{php_extdir}/apcu.so modules/
 
 TEST_PHP_EXECUTABLE=%{__php} \
-TEST_PHP_ARGS="-n -d extension=apcu.so -d extension=$PWD/modules/%{extname}.so" \
+TEST_PHP_ARGS="-n -d extension=$PWD/modules/%{extname}.so" \
 NO_INTERACTION=1 \
 REPORT_EXIT_STATUS=1 \
 %{_bindir}/php -n run-tests.php
@@ -144,7 +144,7 @@ pushd %{extname}-%{version}-zts
 ln -s %{php_ztsextdir}/apcu.so modules/
 
 TEST_PHP_EXECUTABLE=%{__ztsphp} \
-TEST_PHP_ARGS="-n -d extension=apcu.so -d extension=$PWD/modules/%{extname}.so" \
+TEST_PHP_ARGS="-n -d extension=$PWD/modules/%{extname}.so" \
 NO_INTERACTION=1 \
 REPORT_EXIT_STATUS=1 \
 %{_bindir}/php -n run-tests.php
@@ -191,9 +191,7 @@ fi
 %changelog
 * Thu Dec 22 2016 Andy Thompson <andy@webtatic.com> - 2.0.1-1
 - update to 2.0.1
-
-* Sat Dec 10 2016 Andy Thompson <andy@webtatic.com> - 2.0.0-1
-- update to 2.0.0
+- remove explicit loading of apcu module in tests
 
 * Sat Sep 13 2014 Andy Thompson <andy@webtatic.com> - 1.2.1-2
 - Add provides for original packages, require basepkg
