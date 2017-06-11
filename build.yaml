@@ -1,8 +1,5 @@
 name: php-pecl-igbinary
 profiles:
-  php55w:
-    define:
-      basepkg: php55w
   php56w:
     define:
       basepkg: php56w
@@ -17,7 +14,6 @@ builds:
     target: el7-development
     arch: [x86_64]
     profiles:
-      - php55w
       - php56w
       - php70w
       - php71w
@@ -25,12 +21,6 @@ builds:
     target: el6-development
     arch: [x86_64, i386]
     profiles:
-      - php55w
       - php56w
       - php70w
       - php71w
-  webtatic-el5:
-    target: el5-development
-    arch: [x86_64, i386]
-    profiles:
-      - php55w
