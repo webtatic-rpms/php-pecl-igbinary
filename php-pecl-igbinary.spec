@@ -7,7 +7,7 @@
 
 Summary:        Replacement for the standard PHP serializer
 Name:           %{basepkg}-pecl-igbinary
-Version:        2.0.1
+Version:        2.0.5
 Release:        1%{?dist}
 License:        BSD
 Group:          System Environment/Libraries
@@ -189,6 +189,9 @@ fi
 
 
 %changelog
+* Sat Nov 25 2017 Andy Thompson <andy@webtatic.com> - 2.0.5-1
+- update to 2.0.5
+
 * Thu Dec 22 2016 Andy Thompson <andy@webtatic.com> - 2.0.1-1
 - update to 2.0.1
 - remove explicit loading of apcu module in tests
