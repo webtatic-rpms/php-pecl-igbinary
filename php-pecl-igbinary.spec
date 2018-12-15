@@ -7,7 +7,7 @@
 
 Summary:        Replacement for the standard PHP serializer
 Name:           %{basepkg}-pecl-igbinary
-Version:        2.0.5
+Version:        2.0.8
 Release:        1%{?dist}
 License:        BSD
 Group:          System Environment/Libraries
@@ -189,6 +189,9 @@ fi
 
 
 %changelog
+* Sat Dec 15 2018 Andy Thompson <andy@webtatic.com> - 2.0.8-1
+- update to 2.0.8
+
 * Sat Nov 25 2017 Andy Thompson <andy@webtatic.com> - 2.0.5-1
 - update to 2.0.5
 
